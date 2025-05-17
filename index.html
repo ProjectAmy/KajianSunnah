@@ -46,11 +46,11 @@
     // Konfigurasi Supabase
     const SUPABASE_URL = 'https://mlwkfdyapfahhhhudvho.supabase.co'; // Ganti dengan URL Supabase Anda
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sd2tmZHlhcGZhaGhoaHVkdmhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0NDA1MDMsImV4cCI6MjA2MzAxNjUwM30.u2WRijrTq9vP8lpJgac7ETVQBHatEiaAZCrOZwtrEbA'; // Ganti dengan anon key Supabase Anda
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     // Ambil data kajian beserta relasi pemateri dan lokasi
     async function fetchKajian() {
-      let { data, error } = await supabase
+      let { data, error } = await client
         .from('kajian_rutin')
         .select(`
           id, materi,
