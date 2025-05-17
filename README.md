@@ -8,4 +8,4 @@ Buat clone dan buat branch sendiri menggunakan sistem git-flow
 Semoga Allah memudahkan kita semua dan memberikan balasan yang berlipat ganda
 amin
 
-by : amysidra
+# by : amysidra
