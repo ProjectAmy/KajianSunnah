@@ -5,16 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kajian Sunnah</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings:
+      'FILL' 1,
+      'wght' 400,
+      'GRAD' 0,
+      'opsz' 24;
+      vertical-align: middle;
+      color: #22c55e;
+      font-size: 1.2em;
+      margin-right: 4px;
+    }
+  </style>
 </head>
-<body class="bg-gray-50 flex flex-col min-h-screen">
+<body class="bg-green-50 flex flex-col min-h-screen">
   <!-- Header -->
   <header class="bg-white shadow p-4 text-center">
-    <h1 class="text-2xl font-bold text-gray-800">Kajian Sunnah</h1>
+    <h1 class="text-2xl font-bold text-green-800">Kajian Sunnah</h1>
   </header>
 
   <!-- Waktu Sekarang -->
   <section class="p-4 text-center">
-    <span id="current-date" class="text-gray-600"></span>
+    <span id="current-date" class="text-green-700"></span>
   </section>
 
   <!-- Daftar Kajian -->
@@ -24,7 +39,7 @@
 
   <!-- Footer -->
   <footer class="bg-white shadow p-4 text-center mt-auto">
-    <span class="text-gray-500">Project Amy</span>
+    <span class="text-green-600">Project Amy</span>
   </footer>
 
   <!-- Supabase JS CDN -->
@@ -41,7 +56,7 @@
       const tahun = now.getFullYear();
       return `${hariStr}, ${tanggal} ${bulanStr} ${tahun}`;
     }
-    document.getElementById('current-date').textContent = `Waktu: ${formatTanggalSekarang()}`;
+    document.getElementById('current-date').textContent = `${formatTanggalSekarang()}`;
 
     // Konfigurasi Supabase
     const SUPABASE_URL = 'https://mlwkfdyapfahhhhudvho.supabase.co'; // Ganti dengan URL Supabase Anda
@@ -54,6 +69,9 @@
         .from('kajian_rutin')
         .select(`
           id, materi,
+          waktu_mulai,
+          setelah_sholat,
+          kategori_peserta,
           pemateri (nama),
           lokasi (nama, alamat, link_map)
         `)
@@ -72,18 +90,51 @@
         container.innerHTML = '<div class="col-span-3 text-gray-400">Belum ada data kajian.</div>';
         return;
       }
+      // Fungsi untuk format jam:menit
+      function formatJamMenit(waktu) {
+        if (!waktu || waktu === '-') return '-';
+        // Jika sudah format H:mm atau HH:mm, tampilkan tanpa leading zero
+        if (/^\d{1,2}:\d{2}$/.test(waktu)) {
+          let [jam, menit] = waktu.split(':');
+          return `${parseInt(jam, 10)}:${menit}`;
+        }
+        // Jika format jam:menit:detik (misal 05:00:00 atau 18:15:00)
+        if (/^\d{2}:\d{2}:\d{2}$/.test(waktu)) {
+          let [jam, menit] = waktu.split(':');
+          return `${parseInt(jam, 10)}:${menit}`;
+        }
+        // Jika format jam menit tanpa titik dua, misal 1800
+        if (/^\d{3,4}$/.test(waktu)) {
+          let jam = waktu.length === 4 ? waktu.slice(0,2) : waktu.slice(0,1);
+          let menit = waktu.slice(-2);
+          return `${parseInt(jam, 10)}:${menit}`;
+        }
+        // Jika format ISO (2023-05-17T18:00:00+07:00)
+        let date = new Date(waktu);
+        if (!isNaN(date)) {
+          let jam = date.getHours();
+          let menit = date.getMinutes().toString().padStart(2,'0');
+          return `${jam}:${menit}`;
+        }
+        return waktu;
+      }
       container.innerHTML = kajians.map(kajian => {
         const pemateriNama = kajian.pemateri?.nama || '-';
         const lokasiNama = kajian.lokasi?.nama || '-';
         const alamatLokasi = kajian.lokasi?.alamat || '-';
         const linkMap = kajian.lokasi?.link_map || '#';
+        const waktuMulai = kajian.waktu_mulai || '-';
+        const setelahSholat = kajian.setelah_sholat || '';
+        const kategoriPeserta = kajian.kategori_peserta || '-';
         return `
-          <div class="bg-white rounded-lg shadow p-5 flex flex-col gap-2">
-            <div class="font-bold text-lg text-blue-700 mb-1">${kajian.materi || '-'}</div>
-            <div><span class="font-semibold">Pemateri:</span> ${pemateriNama}</div>
-            <div><span class="font-semibold">Lokasi:</span> ${lokasiNama}</div>
-            <div><span class="font-semibold">Alamat:</span> ${alamatLokasi}</div>
-            <div><a href="${linkMap}" target="_blank" class="text-blue-500 underline">Lihat di Map</a></div>
+          <div class="bg-white rounded-lg shadow p-5 flex flex-col gap-2 transition hover:shadow-lg hover:-translate-y-1 cursor-pointer">
+            <div class="font-medium text-lg text-green-700 mb-1">${kajian.materi || '-'}</div>
+            <div class="flex items-center gap-2"><span class="material-icons text-green-500" style="vertical-align:middle;">person</span> Ustadz ${pemateriNama}</div>
+            <div class="flex items-center gap-2"><span class="material-symbols-outlined">mosque</span> ${lokasiNama}</div>
+            <div class="flex items-center gap-2 mt-1"><span class="material-icons text-green-500" style="vertical-align:middle;">schedule</span> ${formatJamMenit(waktuMulai)}${setelahSholat ? ` <span class='flex items-center gap-1'>Ba'da Sholat : ${setelahSholat}</span>` : ''}</div>
+            <div class="flex items-center gap-2"><span class="material-icons text-green-500" style="vertical-align:middle;">groups</span> ${kategoriPeserta}</div>
+            <div class="flex items-center gap-2"><span class="material-icons text-green-500" style="vertical-align:middle;">location_on</span> ${alamatLokasi}</div>
+            <div><a href="${linkMap}" target="_blank" class="text-green-600 flex items-center gap-1"><span class="material-icons text-green-500" style="vertical-align:middle;">map</span> Lihat di Map</a></div>
           </div>
         `;
       }).join('');
