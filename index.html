@@ -33,7 +33,7 @@
   </section>
 
   <!-- Daftar Kajian -->
-  <main class="flex-1 container mx-auto p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="kajian-list">
+  <main class="flex-1 container mx-auto p-2 sm:p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6" id="kajian-list">
     <!-- Cards will be rendered here by JS -->
   </main>
 
@@ -127,8 +127,8 @@
         const setelahSholat = kajian.setelah_sholat || '';
         const kategoriPeserta = kajian.kategori_peserta || '-';
         return `
-          <div class="bg-white rounded-lg shadow p-5 flex flex-col gap-2 transition hover:shadow-lg hover:-translate-y-1 cursor-pointer">
-            <div class="font-medium text-lg text-green-700 mb-1">${kajian.materi || '-'}</div>
+          <div class="bg-white rounded-lg shadow p-2 sm:p-5 flex flex-col gap-2 transition hover:shadow-lg hover:-translate-y-1 cursor-pointer break-words">
+            <div class="font-medium text-base sm:text-lg text-green-700 mb-1">${kajian.materi || '-'}</div>
             <div class="flex items-center gap-2"><span class="material-icons text-green-500" style="vertical-align:middle;">person</span> Ustadz ${pemateriNama}</div>
             <div class="flex items-center gap-2"><span class="material-symbols-outlined">mosque</span> ${lokasiNama}</div>
             <div class="flex items-center gap-2 mt-1"><span class="material-icons text-green-500" style="vertical-align:middle;">schedule</span> ${formatJamMenit(waktuMulai)}${setelahSholat ? ` <span class='flex items-center gap-1'>Ba'da Sholat : ${setelahSholat}</span>` : ''}</div>
