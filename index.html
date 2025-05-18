@@ -47,7 +47,7 @@
   <script>
     // Tampilkan waktu sekarang
     function formatTanggalSekarang() {
-      const hari = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      const hari = ["Ahad", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
       const bulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
       const now = new Date();
       const hariStr = hari[now.getDay()];
@@ -72,7 +72,9 @@
           waktu_mulai,
           setelah_sholat,
           kategori_peserta,
-          pemateri (nama),
+          pemateri (nama, akademik),
+          hari (nama),
+          minggu_ke,
           lokasi (nama, alamat, link_map)
         `)
         .order('waktu_mulai', { ascending: true });
@@ -118,8 +120,40 @@
         }
         return waktu;
       }
-      container.innerHTML = kajians.map(kajian => {
+      // Fungsi untuk mendapatkan nama hari ini dalam bahasa Indonesia
+function getHariIni() {
+  const hariList = ["Ahad", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+  const now = new Date();
+  return hariList[now.getDay()];
+}
+
+const hariIni = getHariIni();
+const kajiansHariIni = kajians.filter(kajian => {
+  let hariKajian = (kajian.hari?.nama || '').trim().toLowerCase();
+  return hariKajian === hariIni.toLowerCase();
+});
+
+// Debug: Tampilkan seluruh kajian yang tampil hari ini beserta judul dan pemateri
+console.log('--- Debug Kajian Hari Ini ---');
+kajiansHariIni.forEach((kajian, idx) => {
+  console.log(`Kajian ke-${idx + 1}: Judul = ${kajian.materi}, Pemateri = ${kajian.pemateri?.nama}, Hari = ${kajian.hari?.nama}`);
+});
+console.log('Total kajian hari ini:', kajiansHariIni.length);
+// END Debug
+
+
+// Urutkan berdasarkan waktu mulai (waktu_mulai)
+kajiansHariIni.sort((a, b) => {
+  // Jika waktu_mulai null atau kosong, letakkan di akhir
+  if (!a.waktu_mulai) return 1;
+  if (!b.waktu_mulai) return -1;
+  // Bandingkan string waktu (format 'HH:mm' atau 'HH:mm:ss')
+  return a.waktu_mulai.localeCompare(b.waktu_mulai);
+});
+
+container.innerHTML = kajiansHariIni.map(kajian => {
         const pemateriNama = kajian.pemateri?.nama || '-';
+        const pemateriTitel = kajian.pemateri?.akademik || '';
         const lokasiNama = kajian.lokasi?.nama || '-';
         const alamatLokasi = kajian.lokasi?.alamat || '-';
         const linkMap = kajian.lokasi?.link_map || '#';
@@ -127,14 +161,15 @@
         const setelahSholat = kajian.setelah_sholat || '';
         const kategoriPeserta = kajian.kategori_peserta || '-';
         return `
-          <div class="bg-white rounded-lg shadow p-2 sm:p-5 flex flex-col gap-2 transition hover:shadow-lg hover:-translate-y-1 cursor-pointer break-words">
-            <div class="font-medium text-base sm:text-lg text-green-700 mb-1">${kajian.materi || '-'}</div>
-            <div class="flex items-center gap-2"><span class="material-icons text-green-500" style="vertical-align:middle;">person</span> Ustadz ${pemateriNama}</div>
-            <div class="flex items-center gap-2"><span class="material-symbols-outlined">mosque</span> ${lokasiNama}</div>
-            <div class="flex items-center gap-2 mt-1"><span class="material-icons text-green-500" style="vertical-align:middle;">schedule</span> ${formatJamMenit(waktuMulai)}${setelahSholat ? ` <span class='flex items-center gap-1'>Ba'da Sholat : ${setelahSholat}</span>` : ''}</div>
-            <div class="flex items-center gap-2"><span class="material-icons text-green-500" style="vertical-align:middle;">groups</span> ${kategoriPeserta}</div>
-            <div class="flex items-center gap-2"><span class="material-icons text-green-500" style="vertical-align:middle;">location_on</span> ${alamatLokasi}</div>
-            <div><a href="${linkMap}" target="_blank" class="text-green-600 flex items-center gap-1"><span class="material-icons text-green-500" style="vertical-align:middle;">map</span> Lihat di Map</a></div>
+          <div class="bg-white rounded-lg shadow-md hover:shadow-2xl transition-shadow duration-300 p-8 sm:p-12 flex flex-col gap-2 hover:-translate-y-1 break-words">
+            <div class="text-2xl sm:text-4xl text-green-800 mb-5">${kajian.materi || '-'}</div>
+            <div class="flex items-center gap-2"><span class="material-icons text-green-600" style="vertical-align:middle;">person</span> Ustadz ${pemateriNama}${pemateriTitel ? ', ' + pemateriTitel : ''}</div>
+            <div class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24" class="text-green-600" style="vertical-align:middle;"><path d="M12 2C11.45 2 11 2.45 11 3V5.09C8.84 5.58 7.09 7.36 7.01 9.56C5.28 10.07 4 11.64 4 13.5V20C4 20.55 4.45 21 5 21H19C19.55 21 20 20.55 20 20V13.5C20 11.64 18.72 10.07 16.99 9.56C16.91 7.36 15.16 5.58 13 5.09V3C13 2.45 12.55 2 12 2ZM12 7C13.65 7 15 8.35 15 10C15 10.55 14.55 11 14 11H10C9.45 11 9 10.55 9 10C9 8.35 10.35 7 12 7ZM6 13.5C6 12.67 6.67 12 7.5 12C8.33 12 9 12.67 9 13.5V19H6V13.5ZM18 19H15V13.5C15 12.67 15.67 12 16.5 12C17.33 12 18 12.67 18 13.5V19ZM13 19H11V13.5C11 12.67 11.67 12 12.5 12C13.33 12 14 12.67 14 13.5V19Z"/></svg> ${lokasiNama}</div>
+            <div class="flex items-center gap-2 mt-1"><span class="material-icons text-green-600" style="vertical-align:middle;">schedule</span> ${formatJamMenit(waktuMulai)}${setelahSholat ? ` <span class='flex items-center gap-1'>Ba'da Sholat : ${setelahSholat}</span>` : ''}</div>
+            <div class="flex items-center gap-2"><span class="material-icons text-green-600" style="vertical-align:middle;">groups</span> ${kategoriPeserta}</div>
+            <div class="flex items-center gap-2"><span class="material-icons text-green-600" style="vertical-align:middle;">calendar_today</span> ${kajian.hari?.nama || '-'}${Array.isArray(kajian.minggu_ke) && kajian.minggu_ke.length > 0 ? ` (pekan ke-${kajian.minggu_ke.join(', ')})` : ''}</div>
+            <div class="flex items-center gap-2"><span class="material-icons text-green-600" style="vertical-align:middle;">location_on</span> ${alamatLokasi}</div>
+            <div><a href="${linkMap}" target="_blank" class="text-green-600 flex items-center gap-1"><span class="material-icons text-green-600" style="vertical-align:middle;">map</span> Lihat di Map</a></div>
           </div>
         `;
       }).join('');
@@ -142,6 +177,7 @@
 
     // Jalankan fetchKajian saat halaman siap
     fetchKajian();
+
   </script>
 </body>
 </html>
